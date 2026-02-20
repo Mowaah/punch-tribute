@@ -1,0 +1,776 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Punch — A Little Soul Between Two Worlds</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --cream: #f5f0e8;
+    --warm: #e8dcc8;
+    --ink: #2a1f14;
+    --soft-brown: #8b6f4e;
+    --muted: #b8a48a;
+    --accent: #c4774a;
+    --pale: #f9f5ef;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--cream);
+    color: var(--ink);
+    font-family: 'Cormorant Garamond', serif;
+    overflow-x: hidden;
+  }
+
+  /* Grain overlay */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 999;
+    opacity: 0.4;
+  }
+
+  /* HERO */
+  .hero {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    padding: 4rem 2rem;
+    text-align: center;
+    overflow: hidden;
+  }
+
+  .hero::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse 70% 60% at 50% 40%, rgba(196,119,74,0.08) 0%, transparent 70%);
+  }
+
+  .doll-icon {
+    font-size: 5rem;
+    animation: float 4s ease-in-out infinite;
+    margin-bottom: 2rem;
+    opacity: 0;
+    animation: fadeUp 1.2s ease forwards, float 4s ease-in-out 1.2s infinite;
+  }
+
+  @keyframes float {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-12px); }
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .hero-eyebrow {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--accent);
+    opacity: 0;
+    animation: fadeUp 1s ease 0.3s forwards;
+  }
+
+  .hero-title {
+    font-size: clamp(3.5rem, 10vw, 7rem);
+    font-weight: 300;
+    font-style: italic;
+    line-height: 1.0;
+    color: var(--ink);
+    margin: 1rem 0 0.5rem;
+    opacity: 0;
+    animation: fadeUp 1s ease 0.5s forwards;
+  }
+
+  .hero-title span {
+    color: var(--accent);
+  }
+
+  .hero-subtitle {
+    font-size: clamp(1rem, 2.5vw, 1.3rem);
+    font-weight: 300;
+    color: var(--soft-brown);
+    font-style: italic;
+    max-width: 480px;
+    line-height: 1.7;
+    margin: 1.5rem auto 0;
+    opacity: 0;
+    animation: fadeUp 1s ease 0.8s forwards;
+  }
+
+  .scroll-hint {
+    position: absolute;
+    bottom: 2.5rem;
+    left: 50%;
+    transform: translateX(-50%);
+    font-family: 'DM Mono', monospace;
+    font-size: 0.6rem;
+    letter-spacing: 0.2em;
+    color: var(--muted);
+    text-transform: uppercase;
+    opacity: 0;
+    animation: fadeUp 1s ease 1.5s forwards;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .scroll-line {
+    width: 1px;
+    height: 40px;
+    background: linear-gradient(to bottom, var(--accent), transparent);
+    animation: scrollPulse 2s ease-in-out infinite;
+  }
+
+  @keyframes scrollPulse {
+    0%, 100% { opacity: 0.4; transform: scaleY(1); }
+    50% { opacity: 1; transform: scaleY(1.2); }
+  }
+
+  /* DIVIDER */
+  .ornament {
+    text-align: center;
+    color: var(--muted);
+    font-size: 1.2rem;
+    letter-spacing: 1rem;
+    padding: 1rem;
+    opacity: 0.5;
+  }
+
+  /* SECTIONS */
+  .section {
+    max-width: 680px;
+    margin: 0 auto;
+    padding: 4rem 2rem;
+  }
+
+  .section-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.6rem;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .section-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--warm);
+  }
+
+  .section h2 {
+    font-size: clamp(2rem, 5vw, 3rem);
+    font-weight: 300;
+    font-style: italic;
+    line-height: 1.2;
+    margin-bottom: 1.5rem;
+    color: var(--ink);
+  }
+
+  .section p {
+    font-size: 1.15rem;
+    line-height: 1.85;
+    color: var(--soft-brown);
+    font-weight: 300;
+    margin-bottom: 1.2rem;
+  }
+
+  .section p strong {
+    color: var(--ink);
+    font-weight: 400;
+  }
+
+  /* PULL QUOTE */
+  .pull-quote {
+    border-left: 2px solid var(--accent);
+    padding: 1.5rem 2rem;
+    margin: 3rem 0;
+    background: linear-gradient(to right, rgba(196,119,74,0.05), transparent);
+  }
+
+  .pull-quote p {
+    font-size: 1.4rem !important;
+    font-style: italic;
+    color: var(--ink) !important;
+    line-height: 1.6 !important;
+    margin: 0 !important;
+  }
+
+  .pull-quote cite {
+    display: block;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.6rem;
+    letter-spacing: 0.15em;
+    color: var(--muted);
+    margin-top: 0.8rem;
+    text-transform: uppercase;
+    font-style: normal;
+  }
+
+  /* TIMELINE */
+  .timeline {
+    max-width: 680px;
+    margin: 0 auto;
+    padding: 2rem 2rem 5rem;
+  }
+
+  .timeline-item {
+    display: grid;
+    grid-template-columns: 60px 1fr;
+    gap: 1.5rem;
+    margin-bottom: 3rem;
+    position: relative;
+  }
+
+  .timeline-item::before {
+    content: '';
+    position: absolute;
+    left: 29px;
+    top: 40px;
+    bottom: -3rem;
+    width: 1px;
+    background: linear-gradient(to bottom, var(--warm), transparent);
+  }
+
+  .timeline-item:last-child::before { display: none; }
+
+  .timeline-dot {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: var(--cream);
+    border: 2px solid var(--accent);
+    margin-top: 6px;
+    margin-left: auto;
+    margin-right: auto;
+    flex-shrink: 0;
+    position: relative;
+    z-index: 1;
+  }
+
+  .timeline-dot.filled {
+    background: var(--accent);
+  }
+
+  .timeline-content h3 {
+    font-size: 1.3rem;
+    font-style: italic;
+    font-weight: 300;
+    margin-bottom: 0.4rem;
+    color: var(--ink);
+  }
+
+  .timeline-content p {
+    font-size: 1rem;
+    line-height: 1.75;
+    color: var(--soft-brown);
+    font-weight: 300;
+  }
+
+  /* HEARTS SECTION */
+  .hearts-section {
+    background: var(--ink);
+    color: var(--cream);
+    padding: 5rem 2rem;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .hearts-section::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse 80% 60% at 50% 50%, rgba(196,119,74,0.15) 0%, transparent 70%);
+  }
+
+  .hearts-section h2 {
+    font-size: clamp(2.5rem, 6vw, 4rem);
+    font-weight: 300;
+    font-style: italic;
+    max-width: 600px;
+    margin: 0 auto 1.5rem;
+    line-height: 1.2;
+    position: relative;
+  }
+
+  .hearts-section p {
+    font-size: 1.1rem;
+    color: var(--muted);
+    font-weight: 300;
+    max-width: 500px;
+    margin: 0 auto 3rem;
+    line-height: 1.8;
+    position: relative;
+  }
+
+  /* HUG BUTTON */
+  .hug-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.75rem;
+    background: transparent;
+    border: 1px solid var(--accent);
+    color: var(--cream);
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.1rem;
+    font-style: italic;
+    padding: 1rem 2.5rem;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    letter-spacing: 0.02em;
+  }
+
+  .hug-btn:hover {
+    background: var(--accent);
+    border-color: var(--accent);
+  }
+
+  .hug-btn:active {
+    transform: scale(0.97);
+  }
+
+  /* HEART BURST */
+  .hearts-container {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    pointer-events: none;
+    z-index: 1000;
+  }
+
+  .floating-heart {
+    position: absolute;
+    font-size: 1.5rem;
+    animation: heartFloat 2s ease-out forwards;
+    pointer-events: none;
+  }
+
+  @keyframes heartFloat {
+    0% { opacity: 1; transform: translateY(0) scale(0.5); }
+    100% { opacity: 0; transform: translateY(-200px) scale(1.3) rotate(20deg); }
+  }
+
+  .hug-count {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.15em;
+    color: var(--muted);
+    margin-top: 1.5rem;
+    position: relative;
+  }
+
+  .hug-count span {
+    color: var(--accent);
+    font-size: 1rem;
+  }
+
+  /* GUESTBOOK */
+  .guestbook {
+    max-width: 680px;
+    margin: 0 auto;
+    padding: 5rem 2rem;
+  }
+
+  .guestbook h2 {
+    font-size: clamp(2rem, 5vw, 2.8rem);
+    font-weight: 300;
+    font-style: italic;
+    margin-bottom: 0.5rem;
+    color: var(--ink);
+  }
+
+  .guestbook-subtitle {
+    font-size: 1rem;
+    color: var(--muted);
+    font-style: italic;
+    margin-bottom: 2.5rem;
+  }
+
+  .guestbook-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-bottom: 3rem;
+  }
+
+  .guestbook-form input,
+  .guestbook-form textarea {
+    background: var(--pale);
+    border: 1px solid var(--warm);
+    border-radius: 0;
+    padding: 0.9rem 1rem;
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1rem;
+    color: var(--ink);
+    transition: border-color 0.2s;
+    resize: none;
+    outline: none;
+  }
+
+  .guestbook-form input:focus,
+  .guestbook-form textarea:focus {
+    border-color: var(--accent);
+  }
+
+  .guestbook-form textarea {
+    min-height: 100px;
+  }
+
+  .submit-btn {
+    align-self: flex-start;
+    background: var(--ink);
+    color: var(--cream);
+    border: none;
+    padding: 0.8rem 2rem;
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1rem;
+    font-style: italic;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.1s;
+    letter-spacing: 0.03em;
+  }
+
+  .submit-btn:hover { background: var(--accent); }
+  .submit-btn:active { transform: scale(0.97); }
+
+  .messages-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  .message-card {
+    border-left: 2px solid var(--warm);
+    padding: 1rem 1.5rem;
+    background: var(--pale);
+    animation: fadeUp 0.5s ease forwards;
+  }
+
+  .message-card .msg-name {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 0.4rem;
+  }
+
+  .message-card .msg-text {
+    font-size: 1.05rem;
+    color: var(--soft-brown);
+    font-style: italic;
+    line-height: 1.7;
+  }
+
+  /* FOOTER */
+  footer {
+    text-align: center;
+    padding: 3rem 2rem;
+    border-top: 1px solid var(--warm);
+    font-family: 'DM Mono', monospace;
+    font-size: 0.6rem;
+    letter-spacing: 0.15em;
+    color: var(--muted);
+    text-transform: uppercase;
+  }
+
+  footer a {
+    color: var(--accent);
+    text-decoration: none;
+  }
+
+  /* FLOATING ZOO TAG */
+  .zoo-tag {
+    display: inline-block;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.6rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    border: 1px solid var(--warm);
+    padding: 0.3rem 0.8rem;
+    color: var(--muted);
+    margin-bottom: 2rem;
+    opacity: 0;
+    animation: fadeUp 1s ease 1s forwards;
+  }
+
+  /* Separator */
+  .sep {
+    width: 100%;
+    height: 1px;
+    background: linear-gradient(to right, transparent, var(--warm), transparent);
+    margin: 0;
+  }
+
+  /* Photo */
+  .photo-section {
+    text-align: center;
+    padding: 3rem 2rem;
+  }
+
+  .punch-photo {
+    width: 100%;
+    max-width: 620px;
+    display: block;
+    margin: 0 auto;
+    border: 1px solid var(--warm);
+    box-shadow: 0 8px 40px rgba(42,31,20,0.12);
+    filter: sepia(8%);
+    transition: filter 0.3s;
+  }
+
+  .punch-photo:hover {
+    filter: sepia(0%);
+  }
+
+  .photo-caption {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.6rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-top: 1rem;
+  }
+</style>
+</head>
+<body>
+
+<div class="hearts-container" id="heartsContainer"></div>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="zoo-tag">Ichikawa City Zoo · Japan</div>
+  <div class="doll-icon">🧸</div>
+  <div class="hero-eyebrow">A tribute</div>
+  <h1 class="hero-title"><span>Punch</span></h1>
+  <p class="hero-subtitle">A little soul raised between two worlds — too human for the wild, too wild for a home.</p>
+  <div class="scroll-hint">
+    <div class="scroll-line"></div>
+    His story
+  </div>
+</section>
+
+<div class="sep"></div>
+
+<!-- STORY SECTION -->
+<section class="section">
+  <div class="section-label">His story</div>
+  <h2>Born into the arms of strangers</h2>
+
+  <p>When Punch, a baby macaque, was just a newborn, his mother turned away. Perhaps she didn't know how; perhaps something in her instincts had broken. Whatever the reason, <strong>Punch was left behind</strong> — tiny, helpless, and alone.</p>
+
+  <p>The caretakers at Ichikawa City Zoo stepped in. They fed him, held him, and gave him the warmth that every young creature needs. He grew up with human hands as his anchor, human voices as his comfort. In their eyes, he found safety.</p>
+
+  <div class="pull-quote">
+    <p>"He keeps hugging the doll given to him by the caretakers — so sad, yet so cute."</p>
+    <cite>— widely shared online</cite>
+  </div>
+
+  <p>But when the time came to introduce Punch to his own kind — to the monkey troop where he was always supposed to belong — something was missing. <strong>He didn't speak their language.</strong> He didn't know the rituals, the hierarchies, the unspoken codes of monkey society.</p>
+
+  <p>And so Punch found himself between worlds: <em>not quite monkey, not quite human.</em> In the place where he should have belonged most, he was a stranger.</p>
+</section>
+
+<div class="sep"></div>
+
+<!-- PHOTO -->
+<div class="photo-section">
+  <img class="punch-photo" src="punch.jpeg" alt="Punch clutching his orangutan doll">
+  <p class="photo-caption">Punch clutching his orangutan doll &nbsp;·&nbsp; Ichikawa City Zoo</p>
+</div>
+
+<div class="sep"></div>
+
+<!-- TIMELINE -->
+<section class="timeline">
+  <div class="section-label" style="max-width:680px;margin:0 auto 2rem;">His journey</div>
+
+  <div class="timeline-item">
+    <div class="timeline-dot filled"></div>
+    <div class="timeline-content">
+      <h3>Abandoned at birth</h3>
+      <p>Punch's mother rejects him shortly after birth — a heartbreaking but not uncommon occurrence in captive primates who have not learned mothering behaviours.</p>
+    </div>
+  </div>
+
+  <div class="timeline-item">
+    <div class="timeline-dot filled"></div>
+    <div class="timeline-content">
+      <h3>Raised by his caretakers</h3>
+      <p>Zoo staff step in as surrogate parents, bottle-feeding him and providing the physical contact and warmth essential for a young primate's development.</p>
+    </div>
+  </div>
+
+  <div class="timeline-item">
+    <div class="timeline-dot filled"></div>
+    <div class="timeline-content">
+      <h3>Given a doll</h3>
+      <p>Caretakers give Punch a soft doll to cling to — baby macaques instinctively hold their mother's fur. He holds it close for comfort and companionship.</p>
+    </div>
+  </div>
+
+  <div class="timeline-item">
+    <div class="timeline-dot"></div>
+    <div class="timeline-content">
+      <h3>Introduced to the troop</h3>
+      <p>Punch meets the zoo's monkey troop for the first time. Raised without the social cues and body language of monkey society, he struggles to integrate. He remains on the outside, watching.</p>
+    </div>
+  </div>
+
+  <div class="timeline-item">
+    <div class="timeline-dot"></div>
+    <div class="timeline-content">
+      <h3>Between two worlds</h3>
+      <p>Today, Punch continues to live at Ichikawa City Zoo — cared for deeply by the humans he trusts, holding his doll, finding his own quiet way of being in the world.</p>
+    </div>
+  </div>
+</section>
+
+<div class="sep"></div>
+
+<!-- HUG SECTION -->
+<section class="hearts-section">
+  <h2>Send Punch a hug</h2>
+  <p>He can't feel it, but somewhere in Ichikawa, a little monkey holds his doll a little tighter. Every bit of love matters.</p>
+  <button class="hug-btn" onclick="sendHug()" id="hugBtn">
+    🤗 &nbsp; Send a hug to Punch
+  </button>
+  <div class="hug-count" id="hugCount"></div>
+</section>
+
+<div class="sep"></div>
+
+<!-- GUESTBOOK -->
+<section class="guestbook">
+  <div class="section-label">Leave a message</div>
+  <h2>Write to Punch</h2>
+  <p class="guestbook-subtitle">Leave a few words for a little one who made the world feel something.</p>
+
+  <form class="guestbook-form" onsubmit="addMessage(event)">
+    <input type="text" placeholder="Your name" id="msgName" maxlength="40" required />
+    <textarea placeholder="Your message to Punch…" id="msgText" maxlength="300" required></textarea>
+    <button type="submit" class="submit-btn">Leave a message →</button>
+  </form>
+
+  <div class="messages-list" id="messagesList">
+    <!-- Seed messages -->
+    <div class="message-card">
+      <div class="msg-name">Hana · Tokyo</div>
+      <div class="msg-text">Punch, you are so loved. The doll you hold is filled with all of our hearts. 🧸</div>
+    </div>
+    <div class="message-card">
+      <div class="msg-name">Anonymous</div>
+      <div class="msg-text">Sometimes the ones who don't fit in anywhere are the most special souls of all.</div>
+    </div>
+    <div class="message-card">
+      <div class="msg-name">Kenji</div>
+      <div class="msg-text">Little Punch — may you always feel warmth, even if it comes from a doll and the kind hands of the people who never gave up on you.</div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <p>Made with love for Punch &nbsp;·&nbsp; Ichikawa City Zoo, Chiba, Japan</p>
+  <br>
+  <p style="opacity:0.6">This is a fan tribute page. Not affiliated with Ichikawa City Zoo.</p>
+</footer>
+
+<script>
+  let hugTotal = parseInt(localStorage.getItem('punch_hugs') || '0');
+
+  function updateHugDisplay() {
+    const el = document.getElementById('hugCount');
+    if (hugTotal > 0) {
+      el.innerHTML = `<span>${hugTotal.toLocaleString()}</span> hugs sent from around the world`;
+    }
+  }
+  updateHugDisplay();
+
+  function sendHug() {
+    hugTotal++;
+    try { localStorage.setItem('punch_hugs', hugTotal); } catch(e){}
+    updateHugDisplay();
+
+    const btn = document.getElementById('hugBtn');
+    btn.textContent = '🐒  Hug sent! ♡';
+    setTimeout(() => { btn.innerHTML = '🤗 &nbsp; Send another hug'; }, 2000);
+
+    // Burst hearts
+    const container = document.getElementById('heartsContainer');
+    const emojis = ['♡', '🧡', '🤎', '♥', '🫶'];
+    for (let i = 0; i < 12; i++) {
+      setTimeout(() => {
+        const heart = document.createElement('div');
+        heart.className = 'floating-heart';
+        heart.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+        heart.style.left = (Math.random() * 80 + 10) + 'vw';
+        heart.style.top = (Math.random() * 30 + 40) + 'vh';
+        heart.style.animationDuration = (1.5 + Math.random()) + 's';
+        container.appendChild(heart);
+        setTimeout(() => heart.remove(), 2500);
+      }, i * 60);
+    }
+  }
+
+  function addMessage(e) {
+    e.preventDefault();
+    const name = document.getElementById('msgName').value.trim();
+    const text = document.getElementById('msgText').value.trim();
+    if (!name || !text) return;
+
+    const list = document.getElementById('messagesList');
+    const card = document.createElement('div');
+    card.className = 'message-card';
+    card.innerHTML = `<div class="msg-name">${escapeHtml(name)}</div><div class="msg-text">${escapeHtml(text)}</div>`;
+    list.insertBefore(card, list.firstChild);
+
+    document.getElementById('msgName').value = '';
+    document.getElementById('msgText').value = '';
+  }
+
+  function escapeHtml(str) {
+    return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  // Scroll reveal
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.style.opacity = '1';
+        entry.target.style.transform = 'translateY(0)';
+      }
+    });
+  }, { threshold: 0.1 });
+
+  document.querySelectorAll('.section, .timeline-item, .guestbook').forEach(el => {
+    el.style.opacity = '0';
+    el.style.transform = 'translateY(20px)';
+    el.style.transition = 'opacity 0.7s ease, transform 0.7s ease';
+    observer.observe(el);
+  });
+</script>
+</body>
+</html>
