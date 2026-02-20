@@ -695,7 +695,7 @@
   const SUPABASE_URL = 'https://ffasigmimlaarcjxsqqv.supabase.co'; 
   const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZmYXNpZ21pbWxhYXJjanhzcXF2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE1NTkwMDcsImV4cCI6MjA4NzEzNTAwN30.ebmrYoIRxz-NOcjyHEqoF2hxxOMy5cm-1avj0vmVfvI';
 
-  const supabase = (SUPABASE_URL && SUPABASE_ANON_KEY)
+  const sb = (SUPABASE_URL && SUPABASE_ANON_KEY)
     ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
     : null;
 
@@ -709,8 +709,8 @@
   }
 
   async function loadHugCount() {
-    if (!supabase) return;
-    const { count, error } = await supabase.from('hugs').select('*', { count: 'exact', head: true });
+    if (!sb) return;
+    const { count, error } = await sb.from('hugs').select('*', { count: 'exact', head: true });
     if (!error) hugTotal = count || 0;
     updateHugDisplay();
   }
@@ -718,11 +718,11 @@
   async function loadMessages() {
     const list = document.getElementById('messagesList');
     const loading = document.getElementById('messagesLoading');
-    if (!supabase) {
+    if (!sb) {
       if (loading) loading.textContent = 'Configure Supabase to load messages.';
       return;
     }
-    const { data, error } = await supabase.from('messages').select('name, message').order('created_at', { ascending: false });
+    const { data, error } = await sb.from('messages').select('name, message').order('created_at', { ascending: false });
     if (loading) loading.remove();
     if (error) {
       list.innerHTML = '<p class="guestbook-subtitle">Could not load messages.</p>';
@@ -739,8 +739,8 @@
   }
 
   async function sendHug() {
-    if (supabase) {
-      const { error } = await supabase.from('hugs').insert({});
+    if (sb) {
+      const { error } = await sb.from('hugs').insert({});
       if (error) return;
       await loadHugCount();
     } else {
@@ -774,8 +774,8 @@
     const text = document.getElementById('msgText').value.trim();
     if (!name || !text) return;
 
-    if (supabase) {
-      const { error } = await supabase.from('messages').insert({ name, message: text });
+    if (sb) {
+      const { error } = await sb.from('messages').insert({ name, message: text });
       if (error) return;
     }
 
