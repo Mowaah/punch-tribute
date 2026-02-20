@@ -700,11 +700,16 @@
     : null;
 
   let hugTotal = 0;
+  let pendingHugs = 0;
+  let hugFlushTimer = null;
+
+  function getTotalHugs() { return hugTotal + pendingHugs; }
 
   function updateHugDisplay() {
     const el = document.getElementById('hugCount');
-    if (hugTotal > 0) {
-      el.innerHTML = `<span>${hugTotal.toLocaleString()}</span> hugs sent from around the world`;
+    const n = getTotalHugs();
+    if (n > 0) {
+      el.innerHTML = `<span>${n.toLocaleString()}</span> hugs sent from around the world`;
     }
   }
 
@@ -713,6 +718,19 @@
     const { count, error } = await sb.from('hugs').select('*', { count: 'exact', head: true });
     if (!error) hugTotal = count || 0;
     updateHugDisplay();
+  }
+
+  function flushPendingHugs() {
+    if (pendingHugs <= 0) return;
+    const n = pendingHugs;
+    pendingHugs = 0;
+    hugTotal += n;
+    updateHugDisplay();
+    if (sb && n > 0) {
+      Promise.all(Array.from({ length: n }, () => sb.from('hugs').insert({}))).then(() => {
+        loadHugCount();
+      }).catch(() => { pendingHugs += n; hugTotal -= n; updateHugDisplay(); });
+    }
   }
 
   async function loadMessages() {
@@ -738,14 +756,18 @@
     if ((data || []).length === 0) list.innerHTML = '<p class="guestbook-subtitle">No messages yet. Be the first.</p>';
   }
 
-  async function sendHug() {
-    if (sb) {
-      const { error } = await sb.from('hugs').insert({});
-      if (error) return;
-      await loadHugCount();
-    } else {
-      hugTotal++;
-      updateHugDisplay();
+  function sendHug() {
+    pendingHugs++;
+    updateHugDisplay();
+
+    if (!hugFlushTimer) {
+      hugFlushTimer = setInterval(() => {
+        flushPendingHugs();
+        if (pendingHugs <= 0) {
+          clearInterval(hugFlushTimer);
+          hugFlushTimer = null;
+        }
+      }, 500);
     }
 
     const btn = document.getElementById('hugBtn');
