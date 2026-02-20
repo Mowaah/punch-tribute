@@ -7,6 +7,7 @@
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link rel="alternate icon" href="favicon.ico" sizes="any">
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
   :root {
     --cream: #f5f0e8;
@@ -679,19 +680,7 @@
   </form>
 
   <div class="messages-list" id="messagesList">
-    <!-- Seed messages -->
-    <div class="message-card">
-      <div class="msg-name">Hana · Tokyo</div>
-      <div class="msg-text">Punch, you are so loved. The doll you hold is filled with all of our hearts. 🧸</div>
-    </div>
-    <div class="message-card">
-      <div class="msg-name">Anonymous</div>
-      <div class="msg-text">Sometimes the ones who don't fit in anywhere are the most special souls of all.</div>
-    </div>
-    <div class="message-card">
-      <div class="msg-name">Kenji</div>
-      <div class="msg-text">Little Punch — may you always feel warmth, even if it comes from a doll and the kind hands of the people who never gave up on you.</div>
-    </div>
+    <p class="guestbook-subtitle" id="messagesLoading">Loading messages…</p>
   </div>
 </section>
 
@@ -703,7 +692,14 @@
 </footer>
 
 <script>
-  let hugTotal = parseInt(localStorage.getItem('punch_hugs') || '0');
+  const SUPABASE_URL = 'https://ffasigmimlaarcjxsqqv.supabase.co'; 
+  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZmYXNpZ21pbWxhYXJjanhzcXF2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE1NTkwMDcsImV4cCI6MjA4NzEzNTAwN30.ebmrYoIRxz-NOcjyHEqoF2hxxOMy5cm-1avj0vmVfvI';
+
+  const supabase = (SUPABASE_URL && SUPABASE_ANON_KEY)
+    ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+    : null;
+
+  let hugTotal = 0;
 
   function updateHugDisplay() {
     const el = document.getElementById('hugCount');
@@ -711,18 +707,51 @@
       el.innerHTML = `<span>${hugTotal.toLocaleString()}</span> hugs sent from around the world`;
     }
   }
-  updateHugDisplay();
 
-  function sendHug() {
-    hugTotal++;
-    try { localStorage.setItem('punch_hugs', hugTotal); } catch(e){}
+  async function loadHugCount() {
+    if (!supabase) return;
+    const { count, error } = await supabase.from('hugs').select('*', { count: 'exact', head: true });
+    if (!error) hugTotal = count || 0;
     updateHugDisplay();
+  }
+
+  async function loadMessages() {
+    const list = document.getElementById('messagesList');
+    const loading = document.getElementById('messagesLoading');
+    if (!supabase) {
+      if (loading) loading.textContent = 'Configure Supabase to load messages.';
+      return;
+    }
+    const { data, error } = await supabase.from('messages').select('name, message').order('created_at', { ascending: false });
+    if (loading) loading.remove();
+    if (error) {
+      list.innerHTML = '<p class="guestbook-subtitle">Could not load messages.</p>';
+      return;
+    }
+    list.innerHTML = '';
+    (data || []).forEach(row => {
+      const card = document.createElement('div');
+      card.className = 'message-card';
+      card.innerHTML = `<div class="msg-name">${escapeHtml(row.name)}</div><div class="msg-text">${escapeHtml(row.message)}</div>`;
+      list.appendChild(card);
+    });
+    if ((data || []).length === 0) list.innerHTML = '<p class="guestbook-subtitle">No messages yet. Be the first.</p>';
+  }
+
+  async function sendHug() {
+    if (supabase) {
+      const { error } = await supabase.from('hugs').insert({});
+      if (error) return;
+      await loadHugCount();
+    } else {
+      hugTotal++;
+      updateHugDisplay();
+    }
 
     const btn = document.getElementById('hugBtn');
     btn.textContent = '🐒  Hug sent! ♡';
     setTimeout(() => { btn.innerHTML = '🤗 &nbsp; Send another hug'; }, 2000);
 
-    // Burst hearts
     const container = document.getElementById('heartsContainer');
     const emojis = ['♡', '🧡', '🤎', '♥', '🫶'];
     for (let i = 0; i < 12; i++) {
@@ -739,13 +768,20 @@
     }
   }
 
-  function addMessage(e) {
+  async function addMessage(e) {
     e.preventDefault();
     const name = document.getElementById('msgName').value.trim();
     const text = document.getElementById('msgText').value.trim();
     if (!name || !text) return;
 
+    if (supabase) {
+      const { error } = await supabase.from('messages').insert({ name, message: text });
+      if (error) return;
+    }
+
     const list = document.getElementById('messagesList');
+    const noMessages = list.querySelector('.guestbook-subtitle');
+    if (noMessages) noMessages.remove();
     const card = document.createElement('div');
     card.className = 'message-card';
     card.innerHTML = `<div class="msg-name">${escapeHtml(name)}</div><div class="msg-text">${escapeHtml(text)}</div>`;
@@ -759,7 +795,9 @@
     return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
   }
 
-  // Scroll reveal
+  loadHugCount().catch(() => {});
+  loadMessages();
+
   const observer = new IntersectionObserver((entries) => {
     entries.forEach(entry => {
       if (entry.isIntersecting) {
