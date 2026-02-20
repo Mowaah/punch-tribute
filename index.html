@@ -4,6 +4,12 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Punch — A Little Soul Between Two Worlds</title>
+<meta name="description" content="A tribute to Punch, a baby macaque at Ichikawa City Zoo who was raised by caretakers and finds comfort in a small doll.">
+<meta property="og:title" content="Punch — A Little Soul Between Two Worlds">
+<meta property="og:description" content="A tribute to Punch, a baby macaque at Ichikawa City Zoo who was raised by caretakers and finds comfort in a small doll.">
+<meta property="og:type" content="website">
+<meta property="og:image" content="punch.jpeg">
+<meta name="twitter:card" content="summary_large_image">
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link rel="alternate icon" href="favicon.ico" sizes="any">
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet">
@@ -191,7 +197,7 @@
     color: var(--ink);
   }
 
-  .section p {
+  .section > p {
     font-size: 1.15rem;
     line-height: 1.85;
     color: var(--soft-brown);
@@ -199,7 +205,7 @@
     margin-bottom: 1.2rem;
   }
 
-  .section p strong {
+  .section > p strong {
     color: var(--ink);
     font-weight: 400;
   }
@@ -213,11 +219,11 @@
   }
 
   .pull-quote p {
-    font-size: 1.4rem !important;
+    font-size: 1.4rem;
     font-style: italic;
-    color: var(--ink) !important;
-    line-height: 1.6 !important;
-    margin: 0 !important;
+    color: var(--ink);
+    line-height: 1.6;
+    margin: 0;
   }
 
   .pull-quote cite {
@@ -459,6 +465,7 @@
 
   .submit-btn:hover { background: var(--accent); }
   .submit-btn:active { transform: scale(0.97); }
+  .submit-btn:disabled { opacity: 0.5; cursor: default; }
 
   .messages-list {
     display: flex;
@@ -501,6 +508,10 @@
     text-transform: uppercase;
   }
 
+  footer p + .footer-disclaimer {
+    margin-top: 0.75rem;
+  }
+
   footer a {
     color: var(--accent);
     text-decoration: none;
@@ -519,6 +530,21 @@
     margin-bottom: 2rem;
     opacity: 0;
     animation: fadeUp 1s ease 1s forwards;
+  }
+
+  .timeline .section-label {
+    max-width: 680px;
+    margin: 0 auto 2rem;
+  }
+
+  .footer-disclaimer {
+    opacity: 0.6;
+  }
+
+  .load-more-wrap {
+    display: none;
+    margin-top: 1.5rem;
+    text-align: center;
   }
 
   /* Separator */
@@ -610,7 +636,7 @@
 
 <!-- TIMELINE -->
 <section class="timeline">
-  <div class="section-label" style="max-width:680px;margin:0 auto 2rem;">His journey</div>
+  <div class="section-label">His journey</div>
 
   <div class="timeline-item">
     <div class="timeline-dot filled"></div>
@@ -659,7 +685,7 @@
 <section class="hearts-section">
   <h2>Send Punch a hug</h2>
   <p>He can't feel it, but somewhere in Ichikawa, a little monkey holds his doll a little tighter. Every bit of love matters.</p>
-  <button class="hug-btn" onclick="sendHug()" id="hugBtn">
+  <button class="hug-btn" id="hugBtn">
     🤗 &nbsp; Send a hug to Punch
   </button>
   <div class="hug-count" id="hugCount"></div>
@@ -674,25 +700,27 @@
   <p class="guestbook-subtitle">Leave a few words for a little one who made the world feel something.</p>
 
   <form class="guestbook-form" onsubmit="addMessage(event)">
-    <input type="text" placeholder="Your name" id="msgName" maxlength="40" required />
-    <textarea placeholder="Your message to Punch…" id="msgText" maxlength="300" required></textarea>
+    <input type="text" placeholder="Your name" id="msgName" maxlength="40" required aria-label="Your name" />
+    <textarea placeholder="Your message to Punch…" id="msgText" maxlength="300" required aria-label="Your message to Punch"></textarea>
     <button type="submit" class="submit-btn">Leave a message →</button>
   </form>
 
   <div class="messages-list" id="messagesList">
     <p class="guestbook-subtitle" id="messagesLoading">Loading messages…</p>
   </div>
+  <div class="load-more-wrap" id="loadMoreWrap">
+    <button type="button" class="submit-btn" id="loadMoreBtn">Load more messages</button>
+  </div>
 </section>
 
 <!-- FOOTER -->
 <footer>
   <p>Made with love for Punch &nbsp;·&nbsp; Ichikawa City Zoo, Chiba, Japan</p>
-  <br>
-  <p style="opacity:0.6">This is a fan tribute page. Not affiliated with Ichikawa City Zoo.</p>
+  <p class="footer-disclaimer">This is a fan tribute page. Not affiliated with Ichikawa City Zoo.</p>
 </footer>
 
 <script>
-  const SUPABASE_URL = 'https://ffasigmimlaarcjxsqqv.supabase.co'; 
+  const SUPABASE_URL = 'https://ffasigmimlaarcjxsqqv.supabase.co';
   const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZmYXNpZ21pbWxhYXJjanhzcXF2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE1NTkwMDcsImV4cCI6MjA4NzEzNTAwN30.ebmrYoIRxz-NOcjyHEqoF2hxxOMy5cm-1avj0vmVfvI';
 
   const sb = (SUPABASE_URL && SUPABASE_ANON_KEY)
@@ -703,11 +731,9 @@
   let pendingHugs = 0;
   let hugFlushTimer = null;
 
-  function getTotalHugs() { return hugTotal + pendingHugs; }
-
   function updateHugDisplay() {
     const el = document.getElementById('hugCount');
-    const n = getTotalHugs();
+    const n = hugTotal + pendingHugs;
     if (n > 0) {
       el.innerHTML = `<span>${n.toLocaleString()}</span> hugs sent from around the world`;
     }
@@ -722,58 +748,62 @@
 
   function flushPendingHugs() {
     if (pendingHugs <= 0) return;
-    const n = pendingHugs;
+    const batch = pendingHugs;
     pendingHugs = 0;
-    hugTotal += n;
+    hugTotal += batch;
     updateHugDisplay();
-    if (sb && n > 0) {
-      Promise.all(Array.from({ length: n }, () => sb.from('hugs').insert({}))).then(() => {
-        loadHugCount();
-      }).catch(() => { pendingHugs += n; hugTotal -= n; updateHugDisplay(); });
-    }
+    if (!sb || batch <= 0) return;
+    const rows = Array.from({ length: batch }, () => ({}));
+    sb.from('hugs').insert(rows)
+      .then(() => loadHugCount())
+      .catch(() => { pendingHugs += batch; hugTotal -= batch; updateHugDisplay(); });
   }
 
-  async function loadMessages() {
+  const MESSAGES_PAGE_SIZE = 20;
+  let messagesOffset = 0;
+
+  function renderMessage(row) {
+    const card = document.createElement('div');
+    card.className = 'message-card';
+    const nameEl = document.createElement('div');
+    nameEl.className = 'msg-name';
+    nameEl.textContent = row.name;
+    const textEl = document.createElement('div');
+    textEl.className = 'msg-text';
+    textEl.textContent = row.message;
+    card.append(nameEl, textEl);
+    return card;
+  }
+
+  async function loadMessages(append) {
     const list = document.getElementById('messagesList');
     const loading = document.getElementById('messagesLoading');
+    const loadMoreWrap = document.getElementById('loadMoreWrap');
+    const loadMoreBtn = document.getElementById('loadMoreBtn');
     if (!sb) {
       if (loading) loading.textContent = 'Configure Supabase to load messages.';
       return;
     }
-    const { data, error } = await sb.from('messages').select('name, message').order('created_at', { ascending: false });
-    if (loading) loading.remove();
+    if (!append) messagesOffset = 0;
+    if (loading && !append) loading.remove();
+    if (loadMoreBtn && append) { loadMoreBtn.disabled = true; loadMoreBtn.textContent = 'Loading…'; }
+    const from = messagesOffset;
+    const to = from + MESSAGES_PAGE_SIZE - 1;
+    const { data, error } = await sb.from('messages').select('name, message').order('created_at', { ascending: false }).range(from, to);
+    if (loadMoreBtn) { loadMoreBtn.disabled = false; loadMoreBtn.textContent = 'Load more messages'; }
     if (error) {
-      list.innerHTML = '<p class="guestbook-subtitle">Could not load messages.</p>';
+      if (!append) list.innerHTML = '<p class="guestbook-subtitle">Could not load messages.</p>';
       return;
     }
-    list.innerHTML = '';
-    (data || []).forEach(row => {
-      const card = document.createElement('div');
-      card.className = 'message-card';
-      card.innerHTML = `<div class="msg-name">${escapeHtml(row.name)}</div><div class="msg-text">${escapeHtml(row.message)}</div>`;
-      list.appendChild(card);
-    });
-    if ((data || []).length === 0) list.innerHTML = '<p class="guestbook-subtitle">No messages yet. Be the first.</p>';
+    if (!append) list.innerHTML = '';
+    (data || []).forEach(row => list.appendChild(renderMessage(row)));
+    messagesOffset += (data || []).length;
+    if (!append && (data || []).length === 0) list.innerHTML = '<p class="guestbook-subtitle">No messages yet. Be the first.</p>';
+    if (loadMoreWrap) loadMoreWrap.style.display = (data || []).length === MESSAGES_PAGE_SIZE ? 'block' : 'none';
+    if (loadMoreBtn) loadMoreBtn.onclick = () => loadMessages(true);
   }
 
-  function sendHug() {
-    pendingHugs++;
-    updateHugDisplay();
-
-    if (!hugFlushTimer) {
-      hugFlushTimer = setInterval(() => {
-        flushPendingHugs();
-        if (pendingHugs <= 0) {
-          clearInterval(hugFlushTimer);
-          hugFlushTimer = null;
-        }
-      }, 500);
-    }
-
-    const btn = document.getElementById('hugBtn');
-    btn.textContent = '🐒  Hug sent! ♡';
-    setTimeout(() => { btn.innerHTML = '🤗 &nbsp; Send another hug'; }, 2000);
-
+  function spawnHearts() {
     const container = document.getElementById('heartsContainer');
     const emojis = ['♡', '🧡', '🤎', '♥', '🫶'];
     for (let i = 0; i < 12; i++) {
@@ -790,32 +820,57 @@
     }
   }
 
+  function sendHug() {
+    pendingHugs++;
+    updateHugDisplay();
+
+    if (!hugFlushTimer) {
+      hugFlushTimer = setInterval(() => {
+        flushPendingHugs();
+        if (pendingHugs <= 0) { clearInterval(hugFlushTimer); hugFlushTimer = null; }
+      }, 800);
+    }
+
+    const btn = document.getElementById('hugBtn');
+    btn.textContent = '🐒  Hug sent! ♡';
+    setTimeout(() => { btn.innerHTML = '🤗 &nbsp; Send another hug'; }, 2000);
+    spawnHearts();
+  }
+
   async function addMessage(e) {
     e.preventDefault();
-    const name = document.getElementById('msgName').value.trim();
-    const text = document.getElementById('msgText').value.trim();
+    const nameInput = document.getElementById('msgName');
+    const textInput = document.getElementById('msgText');
+    const submitBtn = e.target.querySelector('.submit-btn');
+    const name = nameInput.value.trim();
+    const text = textInput.value.trim();
     if (!name || !text) return;
+
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Sending…';
 
     if (sb) {
       const { error } = await sb.from('messages').insert({ name, message: text });
-      if (error) return;
+      if (error) {
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Something went wrong — try again →';
+        setTimeout(() => { submitBtn.textContent = 'Leave a message →'; }, 3000);
+        return;
+      }
     }
+
+    submitBtn.disabled = false;
+    submitBtn.textContent = 'Leave a message →';
 
     const list = document.getElementById('messagesList');
     const noMessages = list.querySelector('.guestbook-subtitle');
     if (noMessages) noMessages.remove();
-    const card = document.createElement('div');
-    card.className = 'message-card';
-    card.innerHTML = `<div class="msg-name">${escapeHtml(name)}</div><div class="msg-text">${escapeHtml(text)}</div>`;
-    list.insertBefore(card, list.firstChild);
-
-    document.getElementById('msgName').value = '';
-    document.getElementById('msgText').value = '';
+    list.insertBefore(renderMessage({ name, message: text }), list.firstChild);
+    nameInput.value = '';
+    textInput.value = '';
   }
 
-  function escapeHtml(str) {
-    return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-  }
+  document.getElementById('hugBtn').addEventListener('click', sendHug);
 
   loadHugCount().catch(() => {});
   loadMessages();
