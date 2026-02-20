@@ -449,6 +449,30 @@
     min-height: 100px;
   }
 
+  .char-count {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.6rem;
+    letter-spacing: 0.1em;
+    color: var(--muted);
+    text-align: right;
+    margin-top: -0.5rem;
+    transition: color 0.2s;
+  }
+
+  .char-count.near-limit {
+    color: var(--accent);
+  }
+
+  .hp-field {
+    position: absolute;
+    left: -9999px;
+    opacity: 0;
+    height: 0;
+    width: 0;
+    overflow: hidden;
+    tab-index: -1;
+  }
+
   .submit-btn {
     align-self: flex-start;
     background: var(--ink);
@@ -494,6 +518,15 @@
     color: var(--soft-brown);
     font-style: italic;
     line-height: 1.7;
+  }
+
+  .message-card .msg-time {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.55rem;
+    letter-spacing: 0.1em;
+    color: var(--muted);
+    margin-top: 0.5rem;
+    opacity: 0.7;
   }
 
   /* FOOTER */
@@ -699,10 +732,12 @@
   <h2>Write to Punch</h2>
   <p class="guestbook-subtitle">Leave a few words for a little one who made the world feel something.</p>
 
-  <form class="guestbook-form" onsubmit="addMessage(event)">
+  <form class="guestbook-form" id="guestbookForm">
     <input type="text" placeholder="Your name" id="msgName" maxlength="40" required aria-label="Your name" />
     <textarea placeholder="Your message to Punch…" id="msgText" maxlength="300" required aria-label="Your message to Punch"></textarea>
-    <button type="submit" class="submit-btn">Leave a message →</button>
+    <div class="char-count" id="charCount">0 / 300</div>
+    <input type="text" name="website" class="hp-field" tabindex="-1" autocomplete="off" aria-hidden="true" />
+    <button type="submit" class="submit-btn" id="submitBtn">Leave a message →</button>
   </form>
 
   <div class="messages-list" id="messagesList">
@@ -759,8 +794,23 @@
       .catch(() => { pendingHugs += batch; hugTotal -= batch; updateHugDisplay(); });
   }
 
-  const MESSAGES_PAGE_SIZE = 20;
+  const MESSAGES_PAGE_SIZE = 10;
   let messagesOffset = 0;
+
+  function timeAgo(dateStr) {
+    if (!dateStr) return '';
+    const seconds = Math.floor((Date.now() - new Date(dateStr).getTime()) / 1000);
+    if (seconds < 60) return 'just now';
+    const minutes = Math.floor(seconds / 60);
+    if (minutes < 60) return `${minutes}m ago`;
+    const hours = Math.floor(minutes / 60);
+    if (hours < 24) return `${hours}h ago`;
+    const days = Math.floor(hours / 24);
+    if (days < 30) return `${days}d ago`;
+    const months = Math.floor(days / 30);
+    if (months < 12) return `${months}mo ago`;
+    return `${Math.floor(months / 12)}y ago`;
+  }
 
   function renderMessage(row) {
     const card = document.createElement('div');
@@ -772,6 +822,12 @@
     textEl.className = 'msg-text';
     textEl.textContent = row.message;
     card.append(nameEl, textEl);
+    if (row.created_at) {
+      const timeEl = document.createElement('div');
+      timeEl.className = 'msg-time';
+      timeEl.textContent = timeAgo(row.created_at);
+      card.appendChild(timeEl);
+    }
     return card;
   }
 
@@ -789,7 +845,7 @@
     if (loadMoreBtn && append) { loadMoreBtn.disabled = true; loadMoreBtn.textContent = 'Loading…'; }
     const from = messagesOffset;
     const to = from + MESSAGES_PAGE_SIZE - 1;
-    const { data, error } = await sb.from('messages').select('name, message').order('created_at', { ascending: false }).range(from, to);
+    const { data, error } = await sb.from('messages').select('name, message, created_at').order('created_at', { ascending: false }).range(from, to);
     if (loadMoreBtn) { loadMoreBtn.disabled = false; loadMoreBtn.textContent = 'Load more messages'; }
     if (error) {
       if (!append) list.innerHTML = '<p class="guestbook-subtitle">Could not load messages.</p>';
@@ -839,9 +895,13 @@
 
   async function addMessage(e) {
     e.preventDefault();
+    const form = e.target;
+    const honeypot = form.querySelector('[name="website"]');
+    if (honeypot && honeypot.value) return;
+
     const nameInput = document.getElementById('msgName');
     const textInput = document.getElementById('msgText');
-    const submitBtn = e.target.querySelector('.submit-btn');
+    const submitBtn = document.getElementById('submitBtn');
     const name = nameInput.value.trim();
     const text = textInput.value.trim();
     if (!name || !text) return;
@@ -859,17 +919,31 @@
       }
     }
 
-    submitBtn.disabled = false;
-    submitBtn.textContent = 'Leave a message →';
+    submitBtn.textContent = 'Thank you ♡';
+    setTimeout(() => {
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Leave a message →';
+    }, 2000);
 
     const list = document.getElementById('messagesList');
     const noMessages = list.querySelector('.guestbook-subtitle');
     if (noMessages) noMessages.remove();
-    list.insertBefore(renderMessage({ name, message: text }), list.firstChild);
+    list.insertBefore(renderMessage({ name, message: text, created_at: new Date().toISOString() }), list.firstChild);
     nameInput.value = '';
     textInput.value = '';
+    updateCharCount();
   }
 
+  function updateCharCount() {
+    const textarea = document.getElementById('msgText');
+    const counter = document.getElementById('charCount');
+    const len = textarea.value.length;
+    counter.textContent = `${len} / 300`;
+    counter.classList.toggle('near-limit', len >= 250);
+  }
+
+  document.getElementById('msgText').addEventListener('input', updateCharCount);
+  document.getElementById('guestbookForm').addEventListener('submit', addMessage);
   document.getElementById('hugBtn').addEventListener('click', sendHug);
 
   loadHugCount().catch(() => {});
